@@ -5,10 +5,12 @@
 extern "C" {
 #endif
 
+#include "lvgl.h"
 #include <stdint.h>
 
-typedef struct lv_display_t lv_display_t;
-typedef struct lv_indev_t lv_indev_t;
+#if defined(LV_VERSION_MAJOR) && (LV_VERSION_MAJOR < 9)
+typedef lv_disp_t lv_display_t;
+#endif
 
 typedef struct lvgl_host_x11 {
     int width;
