@@ -31,11 +31,11 @@ If `libx11-dev` or `lvgl.pc` is missing, CMake will fail during configuration.
 - Basic LVGL v8 / v9 API differences are handled in the host implementation
 - `lvgl_host_x11_init()` only calls `lv_init()` when LVGL is not already initialized
 - The host still assumes a 32-bit LVGL pixel buffer, so `LV_COLOR_DEPTH=32` is required
-- The window currently keeps the fixed size passed at initialization; resizing by dragging the window border is not supported and may cause visual artifacts
+- The window currently keeps the fixed size passed at initialization; resizing by dragging the window border is not supported, so the X11 window may resize while LVGL rendering still uses the original buffer size, causing visual artifacts
 - 已处理 LVGL v8 / v9 的基础 API 差异
 - `lvgl_host_x11_init()` 只会在 LVGL 尚未初始化时调用 `lv_init()`
 - 当前仍假定 LVGL 输出为 32-bit 像素缓冲，因此需要 `LV_COLOR_DEPTH=32`
-- 当前窗口按初始化尺寸固定使用，不支持通过拖拽窗口边框改变大小，否则可能出现显示异常
+- 当前窗口按初始化尺寸固定使用，不支持通过拖拽窗口边框改变大小；如果强行调整窗口，X11 窗口尺寸可能变化，但 LVGL 仍按原始缓冲区绘制，从而出现显示异常
 
 ## Input support / 输入支持
 
