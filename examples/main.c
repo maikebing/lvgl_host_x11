@@ -10,8 +10,6 @@ int main(void)
 {
     lvgl_host_x11_t host;
 
-    lv_init();
-
     if (lvgl_host_x11_init(&host, 800, 480, "LVGL X11 Host Example") != 0) {
         return 1;
     }

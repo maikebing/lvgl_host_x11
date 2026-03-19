@@ -1,4 +1,5 @@
 #include "lvgl_host_x11.h"
+#include "lvgl.h"
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
@@ -11,10 +12,18 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#if defined(LV_VERSION_MAJOR) && (LV_VERSION_MAJOR < 9)
+#if !defined(LV_COLOR_DEPTH) || (LV_COLOR_DEPTH != 32)
+#error "lvgl_host_x11 requires LV_COLOR_DEPTH=32"
+#endif
+
+#if defined(LV_VERSION_MAJOR) && (LV_VERSION_MAJOR == 8)
 #define LVGL_HOST_X11_LVGL_V8 1
 #else
 #define LVGL_HOST_X11_LVGL_V8 0
+#endif
+
+#if LVGL_HOST_X11_LVGL_V8
+typedef lv_disp_t lv_display_t;
 #endif
 
 typedef struct host_internal {
@@ -404,9 +413,9 @@ void lvgl_host_x11_poll(lvgl_host_x11_t *host)
                 internal->mouse_x = ev.xbutton.x;
                 internal->mouse_y = ev.xbutton.y;
             } else if (ev.xbutton.button == Button4) {
-                internal->wheel_diff--;
-            } else if (ev.xbutton.button == Button5) {
                 internal->wheel_diff++;
+            } else if (ev.xbutton.button == Button5) {
+                internal->wheel_diff--;
             }
             break;
         case ButtonRelease:
@@ -418,7 +427,7 @@ void lvgl_host_x11_poll(lvgl_host_x11_t *host)
             break;
         case KeyPress: {
             uint32_t key = keysym_to_lv_key(XLookupKeysym(&ev.xkey, 0));
-            if (key != 0U) {
+            if (key != 0) {
                 internal->last_key = key;
                 internal->key_pressed = 1;
             }
@@ -428,7 +437,7 @@ void lvgl_host_x11_poll(lvgl_host_x11_t *host)
             internal->key_pressed = 0;
             break;
         case ClientMessage:
-            if ((Atom)ev.xclient.data.l[0] == internal->wm_delete_window) {
+            if (ev.xclient.data.l[0] == (long)internal->wm_delete_window) {
                 host->running = 0;
             }
             break;
