@@ -7,9 +7,6 @@ extern "C" {
 
 #include <stdint.h>
 
-typedef struct lv_display_t lv_display_t;
-typedef struct lv_indev_t lv_indev_t;
-
 typedef struct lvgl_host_x11 {
     int width;
     int height;
