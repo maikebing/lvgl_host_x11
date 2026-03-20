@@ -1,6 +1,11 @@
 #include "lvgl.h"
 #include "lvgl_host_x11.h"
 
+#if defined(LV_VERSION_MAJOR) && (LV_VERSION_MAJOR < 9)
+#define lv_button_create(parent) lv_btn_create(parent)
+#define lv_screen_active() lv_scr_act()
+#endif
+
 int main(void)
 {
     lvgl_host_x11_t host;
