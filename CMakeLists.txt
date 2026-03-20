@@ -11,7 +11,23 @@ find_package(X11 REQUIRED)
 # Prefer a bundled LVGL checkout when provided by the parent repo.
 # Fallback to pkg-config for system-installed LVGL.
 set(LVGL_BUNDLED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../lvgl" CACHE PATH "Path to bundled LVGL source tree")
-set(LVGL_BUNDLED_LIB "${LVGL_BUNDLED_DIR}/build-shared/lib/liblvgl.so" CACHE FILEPATH "Path to bundled liblvgl shared library")
+set(LVGL_BUNDLED_LIB "" CACHE FILEPATH "Path to bundled liblvgl shared library")
+
+if(NOT LVGL_BUNDLED_LIB)
+    set(_LVGL_BUNDLED_LIB_CANDIDATES
+        "${CMAKE_CURRENT_SOURCE_DIR}/../build/lvgl-x11/lib/liblvgl.so.9"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../build/lvgl-x11/lib/liblvgl.so"
+        "${LVGL_BUNDLED_DIR}/build-shared/lib/liblvgl.so.9"
+        "${LVGL_BUNDLED_DIR}/build-shared/lib/liblvgl.so"
+    )
+
+    foreach(_lvgl_candidate IN LISTS _LVGL_BUNDLED_LIB_CANDIDATES)
+        if(EXISTS "${_lvgl_candidate}")
+            set(LVGL_BUNDLED_LIB "${_lvgl_candidate}" CACHE FILEPATH "Path to bundled liblvgl shared library" FORCE)
+            break()
+        endif()
+    endforeach()
+endif()
 
 set(LVGL_INCLUDE_DIRS "")
 set(LVGL_LIBRARIES "")
@@ -31,6 +47,13 @@ endif()
 
 add_library(lvgl_host_x11 SHARED
     src/lvgl_host_x11.c
+)
+
+set_target_properties(lvgl_host_x11 PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "$ORIGIN"
+    INSTALL_RPATH_USE_LINK_PATH FALSE
 )
 
 target_include_directories(lvgl_host_x11
@@ -59,6 +82,13 @@ target_link_libraries(lvgl_host_x11
 
 add_executable(lvgl_host_x11_example
     examples/main.c
+)
+
+set_target_properties(lvgl_host_x11_example PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "$ORIGIN"
+    INSTALL_RPATH_USE_LINK_PATH FALSE
 )
 
 target_include_directories(lvgl_host_x11_example
