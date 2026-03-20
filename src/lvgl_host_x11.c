@@ -4,6 +4,7 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -62,6 +63,36 @@ typedef struct host_internal {
 } host_internal_t;
 
 static host_internal_t *g_host = NULL;
+
+static void set_window_title_utf8(Display *display, Window window, const char *title)
+{
+    if (!display || !window || !title) {
+        return;
+    }
+
+    char *title_list[] = { (char *)title };
+    XTextProperty text_prop;
+    if (Xutf8TextListToTextProperty(display, title_list, 1, XUTF8StringStyle, &text_prop) == Success) {
+        XSetWMName(display, window, &text_prop);
+        XSetWMIconName(display, window, &text_prop);
+        if (text_prop.value) {
+            XFree(text_prop.value);
+        }
+    }
+    else {
+        XStoreName(display, window, title);
+    }
+
+    Atom utf8_string = XInternAtom(display, "UTF8_STRING", False);
+    Atom net_wm_name = XInternAtom(display, "_NET_WM_NAME", False);
+    Atom net_wm_visible_name = XInternAtom(display, "_NET_WM_VISIBLE_NAME", False);
+    if (utf8_string != None) {
+        XChangeProperty(display, window, net_wm_name, utf8_string, 8, PropModeReplace,
+                        (const unsigned char *)title, (int)strlen(title));
+        XChangeProperty(display, window, net_wm_visible_name, utf8_string, 8, PropModeReplace,
+                        (const unsigned char *)title, (int)strlen(title));
+    }
+}
 
 static uint64_t tick_ms(void)
 {
@@ -259,6 +290,20 @@ static uint32_t keysym_to_lv_key(KeySym keysym)
     }
 }
 
+void lvgl_host_x11_set_keyboard_group(lvgl_host_x11_t *host, lv_group_t *group)
+{
+    if (!host || !host->user_data) {
+        return;
+    }
+
+    host_internal_t *internal = (host_internal_t *)host->user_data;
+    if (!internal->keyboard_indev) {
+        return;
+    }
+
+    lv_indev_set_group(internal->keyboard_indev, group);
+}
+
 int lvgl_host_x11_init(lvgl_host_x11_t *host, int width, int height, const char *title)
 {
     if (!host || width <= 0 || height <= 0) {
@@ -293,7 +338,7 @@ int lvgl_host_x11_init(lvgl_host_x11_t *host, int width, int height, const char 
         WhitePixel(internal->display, internal->screen));
 
     internal->wm_delete_window = XInternAtom(internal->display, "WM_DELETE_WINDOW", False);
-    XStoreName(internal->display, internal->window, title ? title : "LVGL X11 Host");
+    set_window_title_utf8(internal->display, internal->window, title ? title : "LVGL X11 Host");
     XSetWMProtocols(internal->display, internal->window, &internal->wm_delete_window, 1);
     XSelectInput(internal->display, internal->window,
                  ExposureMask |

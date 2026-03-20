@@ -9,6 +9,7 @@ extern "C" {
 
 typedef struct _lv_display_t lv_display_t;
 typedef struct _lv_indev_t lv_indev_t;
+typedef struct _lv_group_t lv_group_t;
 
 typedef struct lvgl_host_x11 {
     int width;
@@ -22,6 +23,7 @@ void lvgl_host_x11_poll(lvgl_host_x11_t *host);
 void lvgl_host_x11_present(lvgl_host_x11_t *host);
 void lvgl_host_x11_shutdown(lvgl_host_x11_t *host);
 int lvgl_host_x11_is_running(lvgl_host_x11_t *host);
+void lvgl_host_x11_set_keyboard_group(lvgl_host_x11_t *host, lv_group_t *group);
 
 #ifdef __cplusplus
 }
